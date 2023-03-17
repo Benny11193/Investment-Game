@@ -10,6 +10,10 @@ HEIGHT = 540
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+PURPLE = (255, 0, 255)
+LIGHT_BLUE = (0, 255, 255)
 WHITE = (255, 255, 255)
 
 
@@ -28,11 +32,32 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 canvas = pygame.Surface((WIDTH, HEIGHT))
 canvas.fill(color_portfolio)
+info_board_height = HEIGHT
+info_board_height_const = HEIGHT
+info_board = pygame.Surface((WIDTH*2/5, info_board_height))
+info_board.fill(color_short_of_indicators_background)
+info_board_rect = info_board.get_rect()
+info_board_rect.x = 576
+info_board_rect.y = 0
 gaming_msg_background = pygame.Surface((WIDTH,HEIGHT))
 gaming_msg_background.set_alpha(100)
 
 font_none = pygame.font.match_font('none')
 font_msjh = "微軟正黑體.ttf"
+
+init_png1 = pygame.image.load(os.path.join("init1.png")).convert()
+init_png1 = pygame.transform.scale(init_png1,(960,540))
+init_png1.set_alpha(255)
+init_png2 = pygame.image.load(os.path.join("init2.png")).convert()
+init_png2 = pygame.transform.scale(init_png2,(960,540))
+init_png2.set_alpha(200)
+init_png3 = pygame.image.load(os.path.join("init3.png")).convert()
+init_png3 = pygame.transform.scale(init_png3,(960,540))
+init_png3.set_alpha(150)
+init_png4 = pygame.image.load(os.path.join("init4.png")).convert()
+init_png4 = pygame.transform.scale(init_png4,(960,540))
+init_png4 = pygame.transform.flip(init_png4, True, False)
+init_png4.set_alpha(150)
 
 button_pause_symbol_png = pygame.image.load(os.path.join("pause symbol.png")).convert()
 button_pause_symbol_png.set_colorkey(BLACK)
@@ -147,8 +172,8 @@ def draw_short_of_indicators(page):
         draw_paragraph(screen, "MD＝TP-MA的平均偏差", 13, 18, color_inactive, 560, 234, 24)
 
 def show_setting():
-    button_setting_str_color = (51, 51, 51) if (button_setting_str.collidepoint(pygame.mouse.get_pos()))&(not pygame.mouse.get_pressed()[0]) else BLACK
-    button_End_Game_str_color = (51, 51, 51) if (button_End_Game_str.collidepoint(pygame.mouse.get_pos()))&(not pygame.mouse.get_pressed()[0]) else BLACK
+    button_setting_str_color = (51, 51, 51) if (button_setting_str.collidepoint(pygame.mouse.get_pos()))&(not True in pygame.mouse.get_pressed()) else BLACK
+    button_End_Game_str_color = (51, 51, 51) if (button_End_Game_str.collidepoint(pygame.mouse.get_pos()))&(not True in pygame.mouse.get_pressed()) else BLACK
 
     screen.blit(gaming_msg_background, (0,0))
     draw_text_left(screen, "Setting", 32, button_setting_str_color, WIDTH*13/16, 465)
@@ -160,6 +185,14 @@ def show_msg():
     draw_text_left(screen, "XXX", 24, color_game_time_board_text, 300+30, 150, font_msjh)
 
 def show_trading_column(money, hold, direct, input):
+    global last_cursor_flash
+    if pygame.time.get_ticks() - last_cursor_flash > 500:
+        cursor_visible = True
+        if pygame.time.get_ticks() - last_cursor_flash > 1000:
+            last_cursor_flash = pygame.time.get_ticks()
+    else:
+        cursor_visible = False
+
     pygame.draw.rect(screen, color_game_time_board, (453,0,114,63))
     pygame.draw.rect(screen, color_game_time_board_text, (453,0,114,63), 1)
     draw_text_left(screen, "Hold", 18, color_game_time_board_text, 470, 8)
@@ -172,11 +205,97 @@ def show_trading_column(money, hold, direct, input):
     else:
         draw_text_right(screen, "sell :", 18, color_game_time_board_text, 497, 43)
     input_box_trading_width = draw_text_centerx(screen, input, 18, color_game_time_board_text, 524, 42)
+    if input == "" and cursor_visible:
+        draw_text_centerx(screen, "|", 18, color_game_time_board_text, 524, 42)
     pygame.draw.rect(screen, color_game_time_board_text, (507,53,36,1))
 
     pygame.draw.circle(screen, color_game_time_board_text, (556,49), 8)
     draw_text_left(screen, "->", 18, color_game_time_board, 551,42)
     return input_box_trading_width
+
+def init():
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            
+            #if event.type == pygame.MOUSEBUTTONUP:
+
+            #if event.type == pygame.KEYDOWN:
+
+        button_init_Game_Start_color = (184,115,51) if (button_init_Game_Start.collidepoint(pygame.mouse.get_pos()))&(not True in pygame.mouse.get_pressed()) else (147,92,41)
+
+        screen.blit(init_png1, (0,0))
+        screen.blit(init_png2, (0,0))
+        screen.blit(init_png3, (0,0))
+        screen.blit(init_png4, (0,0))
+        draw_text_centerx(screen, "Game Start", 48, button_init_Game_Start_color, 840, 480)
+
+        pygame.display.update()
+
+class Indicator_Info_Col(pygame.Surface):
+    def __init__(self, x, y, title, info):
+        super().__init__((WIDTH*2/5, 30))
+        self.fill(color_short_of_indicators_background)
+        self.rect = self.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.const_y = y
+        self.title = title
+        self.indicator_info = info
+        self.unfold = False
+        self.draw_on_canvas = False
+        self.expand_surface = pygame.Surface((WIDTH*2/5, 30))
+        self.expand_surface.fill(color_short_of_indicators_background)
+        self.button_unfold = pygame.Rect(info_board_rect.x+self.rect.x+316, info_board_rect.y+self.rect.y+11, 16, 12)
+        self.button_unfold_color = color_inactive
+        self.button_draw_on_canvas = pygame.Rect(info_board_rect.x+self.rect.x+346, info_board_rect.y+self.rect.y+8, 16, 16)
+        self.button_draw_on_canvas_color = (109, 81, 28)
+        self.button_not_draw_on_canvas_color = color_inactive
+
+    def event(self):
+        if self.button_unfold.collidepoint(pygame.mouse.get_pos()):
+            if self.unfold == False:
+                self.unfold = True
+            else:
+                self.unfold = False
+        if self.button_draw_on_canvas.collidepoint(pygame.mouse.get_pos()):
+            if self.draw_on_canvas == False:
+                for surf in Indicator_Info_Col_group:
+                    surf.draw_on_canvas = False
+                self.draw_on_canvas = True
+            else:
+                self.draw_on_canvas = False
+
+    def update(self):
+        self.button_unfold = pygame.Rect(info_board_rect.x+self.rect.x+316, info_board_rect.y+self.rect.y+11, 16, 12)
+        self.button_draw_on_canvas = pygame.Rect(info_board_rect.x+self.rect.x+346, info_board_rect.y+self.rect.y+8, 16, 16)
+        self.button_unfold_color = color_active if self.button_unfold.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+        self.button_draw_on_canvas_color = (146, 108, 38) if self.button_draw_on_canvas.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else (109, 81, 28)
+        self.button_not_draw_on_canvas_color = color_active if self.button_draw_on_canvas.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+
+    def draw_on_info_board(self):
+        info_board.blit(self, self.rect)
+        self.fill(color_short_of_indicators_background)
+        draw_text_left(self, self.title, 24, WHITE, 30, 0,font_msjh)
+        if not self.unfold:
+            draw_text_centerx(self, "+", 32, self.button_unfold_color, 324, -8,font_msjh)
+        else:
+            info_board.blit(self.expand_surface, (self.rect.x, self.rect.bottom))
+            draw_text_centerx(self, "_", 32, self.button_unfold_color, 324, -22,font_msjh)
+        
+        if not self.draw_on_canvas:
+            pygame.draw.circle(self, self.button_draw_on_canvas_color, (354, 16), 8)
+        else:
+            pygame.draw.circle(self, self.button_not_draw_on_canvas_color, (354, 16), 8)
+        pygame.draw.circle(self, (107, 107, 107), (354, 16), 8, 3)
+        
+        self.expand_surface.fill(color_short_of_indicators_background)
+        draw_text_left(self.expand_surface, self.indicator_info, 18, WHITE, 30, 0,font_msjh)
 
 
 Initial_Date = datetime.date(2010, 1, 1)
@@ -204,6 +323,37 @@ button_setting_str_color = BLACK
 button_End_Game_str = pygame.Rect(WIDTH*13/16+1, 495, 108,20)
 button_End_Game_str_color = BLACK
 
+button_20days = pygame.Rect(65,410,62,20)
+button_20days_color = color_inactive
+button_60days = pygame.Rect(193,410,62,20)
+button_60days_color = color_inactive
+button_120days = pygame.Rect(316,410,72,20)
+button_120days_color = color_inactive
+button_240days = pygame.Rect(444,410,72,20)
+button_240days_color = color_inactive
+button_cancel_cruciform = pygame.Rect(544,412,16,16)
+button_cancel_cruciform_color = color_inactive
+
+show_cruciform = False
+
+ma_col = Indicator_Info_Col(0, 120, "MA", "MA(5):000.0  MA(10):000.0  MA(20):000.0")
+rsi_col = Indicator_Info_Col(0, 150, "RSI", "RSI(5):00.00  RSI(10):00.00  RSI(20):00.00")
+kd_col = Indicator_Info_Col(0, 180, "KD", "K : 00.00  D : 00.00")
+macd_col = Indicator_Info_Col(0, 210, "MACD", "MACD : 00.00  MACD(9) : 00.00")
+cmo_col = Indicator_Info_Col(0, 240, "CMO", "CMO(5) : 00.00  CMO(10) : 00.00")
+wmsr_col = Indicator_Info_Col(0, 270, "WMSR", "WMSR(9) : 00.00")
+sar_col = Indicator_Info_Col(0, 300, "SAR", "SAR(0.02, 0.2) : 00.00")
+cci_col = Indicator_Info_Col(0, 330, "CCI", "CCI(14) : -00.00%")
+Indicator_Info_Col_group = []
+Indicator_Info_Col_group.append(ma_col)
+Indicator_Info_Col_group.append(rsi_col)
+Indicator_Info_Col_group.append(kd_col)
+Indicator_Info_Col_group.append(macd_col)
+Indicator_Info_Col_group.append(cmo_col)
+Indicator_Info_Col_group.append(wmsr_col)
+Indicator_Info_Col_group.append(sar_col)
+Indicator_Info_Col_group.append(cci_col)
+
 button_buy = pygame.Rect(465, 27, 30, 30)
 button_buy_color = (173, 0, 0)
 button_sell = pygame.Rect(525, 27, 30, 30)
@@ -211,10 +361,18 @@ button_sell_color = (0, 219, 0)
 
 showing_trading_column = False
 trading_column = pygame.Rect(453,0,114,63)
+last_cursor_flash = 0
 button_send_trading = pygame.Rect(550, 43, 12, 12)
+
+showing_holding_board = False
+button_unfold_holding_board = pygame.Rect(935,440,25,100)
+button_unfold_holding_board_color = color_background
 
 button_back_to_init = pygame.Rect(825, 480, 90, 20)
 button_back_to_init_color = color_inactive
+
+button_init_Game_Start = pygame.Rect(750,480,180,30)
+button_init_Game_Start_color = (147,92,41)
 
 running = True
 clock = pygame.time.Clock()
@@ -225,33 +383,52 @@ while running:
             running = False
         
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if button_pause_and_resume.collidepoint(pygame.mouse.get_pos()):
-                time_pause = False if time_pause == True else True
-                last_update = pygame.time.get_ticks()
-            if button_fast_forward.collidepoint(pygame.mouse.get_pos()):
-                if fast_forward<4:
-                    fast_forward*=2
-                else:
-                    fast_forward=1
-            if not trading_column.collidepoint(pygame.mouse.get_pos()):
-                showing_trading_column = False
-                trading_input = ""
-        
-        if event.type == pygame.MOUSEBUTTONUP:
-            if not showing_trading_column:
-                if button_buy.collidepoint(pygame.mouse.get_pos()):
-                    Trading_Direct = True
-                    showing_trading_column = True
-                    time_pause = True
+            if (event.button == 1) or (event.button == 2) or (event.button == 3):
+                if button_pause_and_resume.collidepoint(pygame.mouse.get_pos()):
+                    time_pause = False if time_pause == True else True
                     last_update = pygame.time.get_ticks()
-                if button_sell.collidepoint(pygame.mouse.get_pos()):
-                    Trading_Direct = False
-                    showing_trading_column = True
-                    time_pause = True
-                    last_update = pygame.time.get_ticks()
+                if button_fast_forward.collidepoint(pygame.mouse.get_pos()):
+                    if fast_forward<4:
+                        fast_forward*=2
+                    else:
+                        fast_forward=1
+                if pygame.Rect(48,80,480,320).collidepoint(pygame.mouse.get_pos()):
+                    show_cruciform = True
+                if not trading_column.collidepoint(pygame.mouse.get_pos()):
+                    showing_trading_column = False
+                    trading_input = ""
             else:
-                if button_send_trading.collidepoint(pygame.mouse.get_pos()):
-                    print(trading_input)
+                if pygame.Rect(576,0,WIDTH*2/5,440).collidepoint(pygame.mouse.get_pos()):
+                    if event.button == 4:
+                        if info_board_rect.y < 0:
+                            info_board_rect.y += 30
+                    elif event.button == 5:
+                        if info_board_rect.y > HEIGHT-info_board_height:
+                            info_board_rect.y -= 30
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if (event.button == 1) or (event.button == 2) or (event.button == 3):
+                if button_cancel_cruciform.collidepoint(pygame.mouse.get_pos()):
+                    show_cruciform = False
+                for surf in Indicator_Info_Col_group:
+                    surf.event()
+                if not showing_trading_column:
+                    if button_buy.collidepoint(pygame.mouse.get_pos()):
+                        Trading_Direct = True
+                        showing_trading_column = True
+                        time_pause = True
+                        last_update = pygame.time.get_ticks()
+                    if button_sell.collidepoint(pygame.mouse.get_pos()):
+                        Trading_Direct = False
+                        showing_trading_column = True
+                        time_pause = True
+                        last_update = pygame.time.get_ticks()
+                else:
+                    if button_send_trading.collidepoint(pygame.mouse.get_pos()):
+                        print(trading_input)
+                if not showing_holding_board:
+                    if button_unfold_holding_board.collidepoint(pygame.mouse.get_pos()):
+                        showing_holding_board = True
 
         if event.type == pygame.KEYDOWN:
             if not showing_trading_column:
@@ -264,22 +441,42 @@ while running:
                         trading_input = trading_input[:-1]
                     elif event.key == pygame.K_DELETE:
                         trading_input = ""
+                    elif event.key == pygame.K_RETURN:
+                        print(trading_input)
                     else:
                         if input_box_trading_width <= 20:
                             trading_input += event.unicode
 
 
     screen.blit(canvas, (0, 0))
-    pygame.draw.rect(canvas, WHITE, (48, 80, 480, 320))
-    draw_text_right(canvas, "000.0", 12, WHITE, 45, 72,font_msjh)
-    draw_text_right(canvas, "000.0", 12, WHITE, 45, 392,font_msjh)
+    screen.blit(info_board, (info_board_rect.x, info_board_rect.y))
+
     #更新遊戲
-    button_resume_symbol_png.set_alpha(170) if button_pause_and_resume.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else button_resume_symbol_png.set_alpha(255)
-    button_pause_symbol_png.set_alpha(170) if button_pause_and_resume.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else button_pause_symbol_png.set_alpha(255)
-    button_fast_forward_symbol_png.set_alpha(170) if button_fast_forward.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else button_fast_forward_symbol_png.set_alpha(255)
-    button_setting_symbol_png.set_alpha(170) if button_setting.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else button_setting_symbol_png.set_alpha(255)
-    button_buy_color = RED if button_buy.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else (173, 0, 0)
-    button_sell_color = GREEN if button_sell.collidepoint(pygame.mouse.get_pos())&(not pygame.mouse.get_pressed()[0]) else (0, 219, 0)
+    button_resume_symbol_png.set_alpha(170) if button_pause_and_resume.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else button_resume_symbol_png.set_alpha(255)
+    button_pause_symbol_png.set_alpha(170) if button_pause_and_resume.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else button_pause_symbol_png.set_alpha(255)
+    button_fast_forward_symbol_png.set_alpha(170) if button_fast_forward.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else button_fast_forward_symbol_png.set_alpha(255)
+    button_setting_symbol_png.set_alpha(170) if button_setting.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else button_setting_symbol_png.set_alpha(255)
+    button_buy_color = RED if button_buy.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else (173, 0, 0)
+    button_sell_color = GREEN if button_sell.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else (0, 219, 0)
+    button_20days_color = color_active if button_20days.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+    button_60days_color = color_active if button_60days.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+    button_120days_color = color_active if button_120days.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+    button_240days_color = color_active if button_240days.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+    button_cancel_cruciform_color = color_active if button_cancel_cruciform.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_inactive
+    button_unfold_holding_board_color = (75, 106, 17) if button_unfold_holding_board.collidepoint(pygame.mouse.get_pos())&(not True in pygame.mouse.get_pressed()) else color_background
+
+    unfolding_col_count = 0
+    for surf in Indicator_Info_Col_group:
+        surf.update()
+        surf.rect.y = surf.const_y+unfolding_col_count*30
+        if surf.unfold == True:
+            unfolding_col_count+=1
+    info_board_height = info_board_height_const+unfolding_col_count*30
+    info_board = pygame.Surface((WIDTH*2/5, info_board_height))
+    if info_board_rect.y < HEIGHT-info_board_height:
+        info_board_rect.y += 30
+    if info_board_rect.y > 0:
+        info_board_rect.y = 0
 
     if time_pause == False:
         if pygame.time.get_ticks() - last_update >= update_rate/fast_forward:
@@ -287,7 +484,6 @@ while running:
             days += 1
     if Date < End_Date:
         Date = Initial_Date+datetime.timedelta(days)
-
 
     #畫面顯示
     draw_text_left(screen, Stock_Code+" "+Stock_Name, 24, WHITE, 30, 30, font_msjh)
@@ -298,19 +494,34 @@ while running:
     draw_text_centerx(screen, "buy ", 16, (224, 224, 224), 481, 37)
     draw_text_centerx(screen, "sell ", 16, (79, 79, 79), 541, 37)
 
-    pygame.draw.rect(screen, color_short_of_indicators_background, (576,0,WIDTH*2/5,HEIGHT))
-    draw_text_left(screen, "000.0        +0.0        +0.00%", 24, WHITE, 606, 20, font_msjh)
-    draw_text_left(screen, "open : 000.0  close : 000.0", 18, WHITE, 606, 60, font_msjh)
-    draw_text_left(screen, "high : 000.0  low : 000.0", 18, WHITE, 606, 90, font_msjh)
-    draw_text_left(screen, "volume : 00000  turnover : 000000000", 18, WHITE, 606, 120, font_msjh)
-    draw_text_left(screen, "MA(5):000.0  MA(10):000.0  MA(20):000.0", 18, WHITE, 606, 150, font_msjh)
-    draw_text_left(screen, "RSI(5):00.00  RSI(10):00.00  RSI(20):00.00", 18, WHITE, 606, 180, font_msjh)
-    draw_text_left(screen, "K : 00.00  D : 00.00", 18, WHITE, 606, 210, font_msjh)
-    draw_text_left(screen, "MACD : 00.00  MACD(9) : 00.00", 18, WHITE, 606, 240, font_msjh)
-    draw_text_left(screen, "CMO(5) : 00.00  CMO(10) : 00.00", 18, WHITE, 606, 270, font_msjh)
-    draw_text_left(screen, "WMSR(9) : 00.00", 18, WHITE, 606, 300, font_msjh)
-    draw_text_left(screen, "SAR(0.02, 0.2) : 00.00", 18, WHITE, 606, 330, font_msjh)
-    draw_text_left(screen, "CCI(14) : -00.00%", 18, WHITE, 606, 360, font_msjh)
+    canvas.fill(color_portfolio)
+    pygame.draw.rect(canvas, WHITE, (48, 80, 480, 320))
+    draw_text_right(canvas, "000.0", 12, WHITE, 45, 72,font_msjh)
+    draw_text_right(canvas, "000.0", 12, WHITE, 45, 392,font_msjh)
+    pygame.draw.line(canvas, color_inactive, (48,300), (527,300), 1)
+    pygame.draw.line(canvas, color_inactive, (300,80), (300,399), 1)
+    if not show_cruciform:
+        draw_text_left(canvas, "20days", 18, button_20days_color, 67, 408,font_msjh)
+        draw_text_left(canvas, "60days", 18, button_60days_color, 195, 408,font_msjh)
+        draw_text_left(canvas, "120days", 18, button_120days_color, 318, 408,font_msjh)
+        draw_text_left(canvas, "240days", 18, button_240days_color, 446, 408,font_msjh)
+    else:
+        draw_text_left(canvas, "2010-01-01", 16, WHITE, 48, 408,font_msjh)
+        draw_text_right(canvas, "open:000.0    close:000.0    high:000.0    low:000.0    vol:00000", 12, WHITE, 528, 404,font_msjh)
+        #draw_text_right(canvas, "MA(5):000.0    MA(10):000.0    MA(20):000.0", 12, WHITE, 528, 420,font_msjh)
+        w1 = draw_text_right(canvas, "MA(20):000.0", 12, PURPLE, 528, 420,font_msjh)
+        w2 = draw_text_right(canvas, "MA(10):000.0    ", 12, LIGHT_BLUE, 528-w1, 420,font_msjh)
+        draw_text_right(canvas, "MA(5):000.0    ", 12, YELLOW, 528-w1-w2, 420,font_msjh)
+
+        pygame.draw.circle(canvas, button_cancel_cruciform_color, (552, 420), 10, 2)
+        draw_text_centerx(canvas, "x", 28, button_cancel_cruciform_color, 552, 409)
+
+    info_board.fill(color_short_of_indicators_background)
+    draw_text_left(info_board, "000.0        +0.0        +0.00%", 24, WHITE, 30, 20, font_msjh)
+    draw_text_left(info_board, "open : 000.0  close : 000.0", 18, WHITE, 30, 60, font_msjh)
+    draw_text_left(info_board, "high : 000.0  low : 000.0  volume : 000000", 18, WHITE, 30, 90, font_msjh)
+    for surf in Indicator_Info_Col_group:
+        surf.draw_on_info_board()
 
     pygame.draw.rect(screen, color_game_time_board, (0,440,WIDTH,100))
     draw_text_left(screen, "Date "+str(Date), 40, color_game_time_board_text, WIDTH/16, 480)
@@ -323,7 +534,23 @@ while running:
     screen.blit(button_fast_forward_symbol_png, (540,460))
     screen.blit(button_setting_symbol_png, (720,460))
 
-    #pygame.draw.rect(screen, color_background, (800,-10,WIDTH/6+10,HEIGHT+10), border_radius=6)
+    if showing_holding_board:
+        pygame.draw.rect(screen, color_background, (800,0,WIDTH/6,HEIGHT))
+        pygame.draw.rect(screen, (162, 120, 42), (802,2,WIDTH/6-4,HEIGHT-4),1)
+    else:
+        pygame.draw.rect(screen, button_unfold_holding_board_color, (935,440,25,100))
+        pygame.draw.rect(screen, (162, 120, 42), (937,442,21,96), 1)
+    """
+    pygame.draw.rect(screen, color_background, (800,440,WIDTH/6,100))
+    pygame.draw.rect(screen, (162, 120, 42), (802,442,WIDTH/6-4,96),1)
+    draw_text_left(screen, "目前持有", 16, color_active, 808, 444,font_msjh)
+    draw_text_left(screen, "2330", 16, color_active, 816, 474,font_msjh)
+    draw_text_right(screen, "999", 16, color_active, 932, 474,font_msjh)
+    draw_text_right(screen, "張", 16, color_active, 952, 474,font_msjh)
+    draw_text_right(screen, "NT$1000000", 16, color_active, 948, 504,font_msjh)
+    """
+
+    #show_msg()
     #show_msg()
     #show_setting()
     """
@@ -343,3 +570,54 @@ while running:
 
     pygame.display.update()
 pygame.QUIT
+"""
+Initial_Date = datetime.date(2010,1,1)
+Initial_Date_string = "yyyy-mm-dd"
+input_box_Initial_Date_triggered = False
+End_Date = datetime.date.today() - datetime.timedelta(1)
+End_Date_string = "~Yesterday"
+Initial_Money = 1000000
+Initial_Money_string = "NT$1000000"
+turn_to_next_page = False
+input_Stock_Code = "2330"
+Stock_Code = ""
+Stock_Name = ""
+Used_Strategies_list = []
+Used_Strategies_count = len(Used_Strategies_list)
+Short_Of_Indicators_page = 0
+Game_Start = False
+DF = pandas.DataFrame([])
+Strategies_Result = {}
+Stock_stored = {}
+time_pause = True
+last_update = pygame.time.get_ticks()
+fast_forward = 1
+Date = Initial_Date
+days = 0
+have_shown_msg = False
+Data_period = 20
+show_cruciform = False
+ma_col = Indicator_Info_Col(0, 120, "MA", "")
+rsi_col = Indicator_Info_Col(0, 150, "RSI", "")
+kd_col = Indicator_Info_Col(0, 180, "KD", "")
+macd_col = Indicator_Info_Col(0, 210, "MACD", "")
+cmo_col = Indicator_Info_Col(0, 240, "CMO", "")
+wmsr_col = Indicator_Info_Col(0, 270, "WMSR", "")
+sar_col = Indicator_Info_Col(0, 300, "SAR", "")
+cci_col = Indicator_Info_Col(0, 330, "CCI", "")
+Indicator_Info_Col_group = []
+Indicator_Info_Col_group.append(ma_col)
+Indicator_Info_Col_group.append(rsi_col)
+Indicator_Info_Col_group.append(kd_col)
+Indicator_Info_Col_group.append(macd_col)
+Indicator_Info_Col_group.append(cmo_col)
+Indicator_Info_Col_group.append(wmsr_col)
+Indicator_Info_Col_group.append(sar_col)
+Indicator_Info_Col_group.append(cci_col)
+trading_input = ""
+Trading_Direct = True
+Trading_Input = 0
+Money = Initial_Money
+showing_trading_column = False
+last_cursor_flash = 0
+show_Unable_to_operate = False"""

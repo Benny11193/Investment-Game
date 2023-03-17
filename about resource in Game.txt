@@ -1,0 +1,11 @@
+You have to download to run the game
+
+BGM:https://www.youtube.com/watch?v=h2khzs_uBv8
+BGM出處：KENKENBGM K君
+
+font
+download from:https://korenetmedia.com/download/%E5%BE%AE%E8%BB%9F%E6%AD%A3%E9%BB%91%E9%AB%94ttf%E5%AD%97%E5%9E%8B/
+
+Ta-Lib
+download from:https://www.lfd.uci.edu/~gohlke/pythonlibs/
+
