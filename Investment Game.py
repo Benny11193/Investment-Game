@@ -58,7 +58,7 @@ gaming_setting_background.fill(color_background)
 gaming_setting_background.set_alpha(100)
 
 font_none = pygame.font.match_font('none')
-font_msjh = "微軟正黑體.ttf"
+font_msjh = "微軟正黑體-1.ttf"
 
 piggy_bank_png = pygame.image.load(os.path.join("piggy bank.png")).convert()
 piggy_bank_png.set_colorkey(BLACK)
@@ -98,8 +98,11 @@ button_setting_symbol_png = pygame.image.load(os.path.join("setting symbol.png")
 button_setting_symbol_png.set_colorkey(BLACK)
 button_setting_symbol_png = pygame.transform.scale(button_setting_symbol_png,(60,60))
 
-pygame.mixer.music.load("60.歡樂城.mp3") # BGM出處：KENKENBGM K君
-pygame.mixer.music.set_volume(0.1)
+try:
+    pygame.mixer.music.load("60.歡樂城.mp3") # BGM出處：KENKENBGM K君
+    pygame.mixer.music.set_volume(0.1)
+except:
+    pass
 
 def draw_text_left(surf, text, size, color, x, y, font = font_none):
     font = pygame.font.Font(font, size)
@@ -1429,7 +1432,10 @@ button_back_to_init_color = color_inactive
 button_init_Game_Start = pygame.Rect(750,480,180,30)
 button_init_Game_Start_color = (147,92,41)
 
-pygame.mixer.music.play(-1)
+try:
+    pygame.mixer.music.play(-1)
+except:
+    pass
 
 show_init = True
 while running:
